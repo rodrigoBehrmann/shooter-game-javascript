@@ -3,6 +3,15 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+const collisionCanvas = document.getElementById('canvas1');
+const collisionCtx = collisionCanvas.getContext('2d');
+collisionCanvas.width = window.innerWidth;
+collisionCanvas.height = window.innerHeight;
+
+
+let score = 0;
+ctx.font = '50px Impact';
+
 let timeToNextRaven = 0;
 let ravenInterval = 500;
 let lastTime = 0;
@@ -30,6 +39,9 @@ class Raven {
         this.maxFrame = 4;
         this.timeSinceFlap = 0;
         this.flapInterval = Math.random() * 50 + 50;
+
+        this.randomColors = [Math.floor(Math.random() * 255), Math.floor(Math.random() * 255), Math.floor(Math.random() * 255)];
+        this.color = 'rgb(' + this.randomColors[0] + ',' + this.randomColors[1] + ',' + this.randomColors[2] + ')';
         
     }
 
@@ -52,7 +64,8 @@ class Raven {
     }
 
     draw(){
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.drawImage(
             this.image, 
             this.frame * this.spriteWidth, 0, 
@@ -62,7 +75,18 @@ class Raven {
     }
 }
 
-const raven = new Raven();
+function drawScore(){
+    ctx.fillStyle = 'black';
+    ctx.fillText('Score: ' + score, 50, 75);
+    ctx.fillStyle = 'white';
+    ctx.fillText('Score: ' + score, 55, 80);
+}
+
+window.addEventListener('click', function(e){
+    const detectPixelColor = ctx.getImageData(e.x, e.y, 1, 1);
+    console.table(detectPixelColor);
+})
+
 
 //frame by frame update with timestamp
 function animate(timestamp){
@@ -75,11 +99,16 @@ function animate(timestamp){
     if(timeToNextRaven > ravenInterval){
         ravens.push(new Raven());
         timeToNextRaven = 0; 
+        ravens.sort(function(a, b){
+            return a.width - b.width;
+        });
     }
+
+    drawScore();
     [...ravens].forEach(object => object.update(deltatime)); //modifica a posição do objeto
     [...ravens].forEach(object => object.draw()); //desenha o objeto na tela
     ravens = ravens.filter(object => !object.markedForDeletion);
-    console.log(ravens);
+
 
     requestAnimationFrame(animate);    
 }
