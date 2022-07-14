@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const collisionCanvas = document.getElementById('canvas1');
+const collisionCanvas = document.getElementById('collisionCanvas');
 const collisionCtx = collisionCanvas.getContext('2d');
 collisionCanvas.width = window.innerWidth;
 collisionCanvas.height = window.innerHeight;
@@ -34,6 +34,7 @@ class Raven {
 
         this.image = new Image();
         this.image.src = 'raven.png';
+        
 
         this.frame = 0;
         this.maxFrame = 4;
@@ -64,8 +65,8 @@ class Raven {
     }
 
     draw(){
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        collisionCtx.fillStyle = this.color;
+        collisionCtx.fillRect(this.x, this.y, this.width, this.height);
         ctx.drawImage(
             this.image, 
             this.frame * this.spriteWidth, 0, 
@@ -75,22 +76,30 @@ class Raven {
     }
 }
 
-function drawScore(){
-    ctx.fillStyle = 'black';
-    ctx.fillText('Score: ' + score, 50, 75);
-    ctx.fillStyle = 'white';
-    ctx.fillText('Score: ' + score, 55, 80);
-}
+    function drawScore(){
+        ctx.fillStyle = 'black';
+        ctx.fillText('Score: ' + score, 50, 75);
+        ctx.fillStyle = 'white';
+        ctx.fillText('Score: ' + score, 55, 80);
+    }
 
-window.addEventListener('click', function(e){
-    const detectPixelColor = ctx.getImageData(e.x, e.y, 1, 1);
-    console.table(detectPixelColor);
-})
+    window.addEventListener('click', function(e){
+        const detectPixelColor = collisionCtx.getImageData(e.x, e.y, 1, 1);
+        console.log(detectPixelColor);
+        const pc = detectPixelColor.data;
+        ravens.forEach(object => {
+            if(object.randomColors[0] === pc[0] && object.randomColors[1] === pc[1] && object.randomColors[2] === pc[2]){
+                object.markedForDeletion = true;
+                score++;
+            }
+        })
+    })
 
 
 //frame by frame update with timestamp
 function animate(timestamp){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    collisionCtx.clearRect(0, 0, canvas.width, canvas.height);
 
     let deltatime = timestamp - lastTime;
     lastTime = timestamp;
